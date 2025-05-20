@@ -1,0 +1,23 @@
+---
+title: "Class 06 R functions"
+output: html_document
+---
+
+```{r}
+library(ggplot2) 
+ggplot(mtcars) +
+aes(x=speed, height=dist) +
+barplot()
+```
+
+```{r}
+ggplot(mtcars) +
+  aes(x=mpg,y=disp) +
+  geom_point()
+```
+
+```{r}
+ggplot(mtcars, aes(mpg,disp)) +
+  geom_point()
+```
+
