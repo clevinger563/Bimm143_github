@@ -6,3 +6,7 @@ My Classwork from Bimm143 S25 at UC San Diego.
 -05 Advanced graphics with **ggplot2**
 
 -06 R functions
+
+-07 Intro to Machine Learning 
+
+All four of these classes should have been added to the github web browser.  
