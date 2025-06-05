@@ -1,5 +1,5 @@
 # Bimm143
-My Classwork from Bimm143 S25 at UC San Diego.
+My Classwork from [Bimm143 S25](https://bioboot.github.io/bimm143_S25/) at UC San Diego.
 
 -04 Intro to R
 
@@ -10,4 +10,3 @@ My Classwork from Bimm143 S25 at UC San Diego.
 -07 Intro to Machine Learning 
 
 All four of these classes should have been added to the github web browser. 
-
