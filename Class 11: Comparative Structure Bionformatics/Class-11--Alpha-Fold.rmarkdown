@@ -1,0 +1,570 @@
+---
+title: "Class 11: AlphaFold"
+author: "Christopher Levinger (A17390693)"
+format: html
+---
+
+
+## First part of Class: Structural Bionformatics 2
+Load up the packages we will need for analysis of protein structure sets.
+
+
+
+```{r}
+library(bio3d)
+```
+
+
+
+install.packages("BiocManager")
+BiocManager::install("msa")
+These above packages were already previously installed. 
+
+We will analyze the ADK family with a single ADK database accession code: "1ake_A"
+
+
+
+```{r}
+id <- "1ake_A"
+aa <- get.seq(id)
+aa
+```
+
+
+We can search the PDB database to find all related entries.
+
+
+
+```{r}
+blast <- blast.pdb(aa)
+```
+
+```{r}
+attributes(blast)
+```
+
+```{r}
+head(blast$hit.tbl)
+```
+
+
+Make a little summary figure of these results:
+
+
+
+```{r}
+hits <- plot(blast)
+```
+
+
+Our "top hits" i.e the most similar entries in the database are:
+
+
+
+```{r}
+hits$pdb.id
+```
+
+```{r}
+#Downoload related pdb files
+files <- get.pdb(hits$pdb.id, path="pdbs", split=TRUE, gzip=TRUE)
+```
+
+```{r}
+# Align releated PDBs
+pdbs <- pdbaln(files, fit = TRUE, exefile="msa")
+```
+
+
+Align and superimpose all these structures: 
+
+Sidenote: 
+
+
+
+```{r}
+library(bio3dview)
+
+view.pdbs(pdbs)
+```
+
+
+
+This is better but still difficult to see what is similar and different in all these structures or indeed learn much about how this family works.
+
+Let's try PCA:
+
+
+
+```{r}
+pc <- pca(pdbs)
+plot(pc)
+```
+
+```{r}
+plot(pc, pc.axes=1:2)
+```
+
+```{r}
+view.pca(pc)
+```
+
+
+Write a PDB "trajectory" for mol-star
+
+
+
+```{r}
+mktrj(pc, file="pca_results.pdb")
+```
+
+
+
+Allow for downloading of results
+
+## Beginning of Alpha Fold for Dimer Protein 
+
+
+
+```{r}
+library(bio3d)
+
+pth <- "dimer_23119_1/"
+pdb.files <- list.files(path=pth, full.names=TRUE, pattern= ".pdb")
+```
+
+
+
+Align and superimpose all these models. 
+
+
+
+```{r}
+file.exists(pdb.files)
+```
+
+```{r}
+pdbs <- pdbaln(pdb.files, fit=TRUE, exefile="msa")
+```
+
+```{r}
+library(bio3dview)
+view.pdbs(pdbs)
+```
+
+
+
+High pldt scores above 70 are good. y-axis is pldt score x-axis is amino acid. Low paes plots are good. 
+
+
+
+```{r}
+plot(pdbs$b[1,], typ="l", ylim=c(0,100))
+lines(pdbs$b[5,], typ="l", col="red")
+lines(pdbs$b[3,], typ="l", col="green")
+```
+
+```{r}
+core <- core.find(pdbs)
+```
+
+```{r}
+core.inds <- print(core, vol=0.5)
+```
+
+```{r}
+xyz <- pdbfit(pdbs, core.inds, outpath="corefit_structures")
+```
+
+```{r}
+rf <- rmsf(xyz)
+
+plotb3(rf,)
+abline(v=100, col="gray", ylab="RMSF")
+```
+
+
+
+## Custom Analysis for Resulting Domains
+
+
+
+```{r}
+results_dir <- "dimer_23119_1" 
+```
+
+```{r}
+pdb_files <- list.files(path=results_dir,
+                        pattern="*.pdb",
+                        full.names = TRUE)
+basename(pdb.files)
+```
+
+```{r}
+library(bio3d)
+pdbs <- pdbaln(pdb_files, fit=TRUE, exefile="msa")
+```
+
+```{r}
+pdbs
+```
+
+```{r}
+rd <- rmsd(pdbs, fit=T)
+range(rd)
+```
+
+```{r}
+library(pheatmap)
+
+colnames(rd) <- paste0("m",1:5)
+rownames(rd) <- paste0("m",1:5)
+pheatmap(rd)
+```
+
+```{r}
+pdb <- read.pdb("1hsg")
+```
+
+```{r}
+plotb3(pdbs$b[1,], typ="l", lwd=2, sse=pdb)
+points(pdbs$b[2,], typ="l", col="red")
+points(pdbs$b[3,], typ="l", col="blue")
+points(pdbs$b[4,], typ="l", col="darkgreen")
+points(pdbs$b[5,], typ="l", col="orange")
+abline(v=100, col="gray")
+```
+
+```{r}
+core <- core.find(pdbs)
+```
+
+```{r}
+core.inds <- print(core, vol=0.5)
+```
+
+```{r}
+xyz <- pdbfit(pdbs, core.inds, outpath="corefit_structures")
+```
+
+```{r}
+rf <- rmsf(xyz)
+
+plotb3(rf, sse=pdb)
+abline(v=100, col="gray", ylab="RMSF")
+```
+
+
+## Predicted Alignment Error for Domains
+
+
+
+```{r}
+library(jsonlite)
+pae_files <- list.files(path=results_dir,
+                        pattern=".*model.*\\.json",
+                        full.names = TRUE)
+```
+
+```{r}
+pae1 <- read_json(pae_files[1],simplifyVector = TRUE)
+pae5 <- read_json(pae_files[5],simplifyVector = TRUE)
+
+attributes(pae1)
+```
+
+```{r}
+head(pae1$plddt) 
+```
+
+```{r}
+pae5$max_pae
+```
+
+```{r}
+pae1$max_pae
+```
+
+```{r}
+plot.dmat(pae1$pae, 
+          xlab="Residue Position (i)",
+          ylab="Residue Position (j)")
+```
+
+```{r}
+plot.dmat(pae5$pae, 
+          xlab="Residue Position (i)",
+          ylab="Residue Position (j)",
+          grid.col = "black",
+          zlim=c(0,30))
+
+
+```
+
+```{r}
+plot.dmat(pae1$pae, 
+          xlab="Residue Position (i)",
+          ylab="Residue Position (j)",
+          grid.col = "black",
+          zlim=c(0,30))
+```
+
+
+
+## Score Residue Conservation from alignment file 
+
+Alpha-fold returns it's large alignment file used for analysis.
+Here we read this rile and score conservation per position. 
+
+
+
+
+```{r}
+aln_file <- list.files(path=pth,
+                       pattern=".a3m$",
+                       full.names= TRUE)
+aln_file
+```
+
+```{r}
+aln <- read.fasta(aln_file[1], to.upper = TRUE)
+```
+
+```{r}
+dim(aln$ali)
+```
+
+```{r}
+sim <- conserv(aln)
+
+plotb3(sim[1:99],
+       ylab="Conservation Score")
+```
+
+
+
+## Residue Conservation for Alignment File 
+
+
+
+```{r}
+aln_file <- list.files(path=results_dir,
+                       pattern=".a3m$",
+                        full.names = TRUE)
+aln_file
+```
+
+```{r}
+aln <- read.fasta(aln_file[1], to.upper = TRUE)
+```
+
+```{r}
+dim(aln$ali)
+```
+
+```{r}
+sim <- conserv(aln)
+
+plotb3(sim[1:99], sse=trim.pdb(pdb, chain="A"),
+       ylab="Conservation Score")
+
+
+```
+
+```{r}
+con <- consensus(aln, cutoff = 0.9)
+con$seq
+
+
+```
+
+```{r}
+m1.pdb <- read.pdb(pdb_files[1])
+occ <- vec2resno(c(sim[1:99], sim[1:99]), m1.pdb$atom$resno)
+write.pdb(m1.pdb, o=occ, file="m1_conserv.pdb")
+```
+
+
+
+## Find a gene project alpha fold continuation
+
+
+
+```{r}
+library(bio3d)
+
+pth <- "novel_d48c6"
+pdb.file <- list.files(path=pth, full.names=TRUE, pattern= ".pdb")
+```
+
+```{r}
+file.exists(pdb.file)
+```
+
+```{r}
+pdbs <- pdbaln(pdb.file, fit=TRUE, exefile="msa")
+```
+
+```{r}
+library(bio3dview)
+view.pdbs(pdbs)
+```
+
+```{r}
+plot(pdbs$b[1,], typ="l", ylim=c(0,100))
+lines(pdbs$b[5,], typ="l", col="red")
+lines(pdbs$b[3,], typ="l", col="green")
+```
+
+```{r}
+core <- core.find(pdbs)
+```
+
+
+## Custom Analysis of Resulting Models: Find a Gene Project
+
+
+
+```{r}
+results_dir <- "novel_d48c6"
+```
+
+```{r}
+pdb_files <- list.files(path=results_dir,
+                        pattern="*.pdb",
+                        full.names = TRUE)
+basename(pdb_files)
+```
+
+```{r}
+library(bio3d)
+pdbs <- pdbaln(pdb_files, fit=TRUE, exefile="msa")
+```
+
+```{r}
+pdbs
+```
+
+```{r}
+rd <- rmsd(pdbs, fit=T)
+
+range(rd)
+```
+
+```{r}
+library(pheatmap)
+
+colnames(rd) <- paste0("m",1:5)
+rownames(rd) <- paste0("m",1:5)
+pheatmap(rd)
+```
+
+```{r}
+pdb <- read.pdb("1hsg")
+```
+
+```{r}
+plotb3(pdbs$b[1,], typ="l", lwd=2, sse=pdb)
+points(pdbs$b[2,], typ="l", col="red")
+points(pdbs$b[3,], typ="l", col="blue")
+points(pdbs$b[4,], typ="l", col="darkgreen")
+points(pdbs$b[5,], typ="l", col="orange")
+abline(v=100, col="gray")
+```
+
+```{r}
+core.inds <- core.find(pdbs, thresh = 0.9)
+```
+
+```{r}
+xyz <- pdbfit(pdbs, core.inds, outpath = "corefit_structures")
+```
+
+```{r}
+rf <- rmsf(xyz)
+
+plotb3(rf, sse=pdb)
+abline(v=100, col="gray", ylab="RMSF")
+```
+
+```{r}
+library(jsonlite)
+pae_files <- list.files(path=results_dir,
+                        pattern=".*model.*\\.json",
+                        full.names = TRUE)
+
+
+```
+
+```{r}
+pae1 <- read_json(pae_files[1],simplifyVector = TRUE)
+pae5 <- read_json(pae_files[5],simplifyVector = TRUE)
+
+attributes(pae1)
+```
+
+```{r}
+head(pae1$plddt) 
+```
+
+```{r}
+pae1$max_pae
+```
+
+```{r}
+pae5$max_pae
+```
+
+```{r}
+plot.dmat(pae1$pae, 
+          xlab="Residue Position (i)",
+          ylab="Residue Position (j)")
+```
+
+```{r}
+plot.dmat(pae5$pae, 
+          xlab="Residue Position (i)",
+          ylab="Residue Position (j)",
+          grid.col = "black",
+          zlim=c(0,30))
+
+
+```
+
+```{r}
+plot.dmat(pae1$pae, 
+          xlab="Residue Position (i)",
+          ylab="Residue Position (j)",
+          grid.col = "black",
+          zlim=c(0,30))
+
+
+```
+
+```{r}
+aln_file <- list.files(path=results_dir,
+                       pattern=".a3m$",
+                        full.names = TRUE)
+aln_file
+```
+
+```{r}
+aln <- read.fasta(aln_file[1], to.upper = TRUE)
+```
+
+```{r}
+dim(aln$ali)
+```
+
+```{r}
+sim <- conserv(aln)
+
+plotb3(sim[1:99], sse=trim.pdb(pdb, chain="A"),
+       ylab="Conservation Score")
+```
+
+```{r}
+con <- consensus(aln, cutoff = 0.9)
+con$seq
+```
+
