@@ -3,3 +3,8 @@ title: "Bimm143 Class 04"
 output: html_document
 ---
 
+```{r}
+x<-1:50
+plot(x,sin(x))
+plot(x,sin(x), type="l",col="red", lwd=3, xlab="Silly x axis", ylab="Sensible y axis")
+```
