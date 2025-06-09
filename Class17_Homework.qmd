@@ -80,11 +80,11 @@ rownames(colData) <- colnames(txi.kallisto$counts)
 y <- as.data.frame(pca$x)
 y$Condition <- as.factor(colData$condition)
 ggplot(y) +
-  aes(PC1, PC3, col=Condition) +
+  aes(PC2, PC3, col=Condition) +
   geom_point() +
   geom_text_repel(label=rownames(y)) +
   theme_bw()
-``
+```
 
 ```{r}
 colData <- data.frame(condition = factor(rep(c("control", "treatment"), each = 2)))
@@ -92,7 +92,7 @@ rownames(colData) <- colnames(txi.kallisto$counts)
 y <- as.data.frame(pca$x)
 y$Condition <- as.factor(colData$condition)
 ggplot(y) +
-  aes(PC2, PC3, col=Condition) +
+  aes(PC1, PC3, col=Condition) +
   geom_point() +
   geom_text_repel(label=rownames(y)) +
   theme_bw()
