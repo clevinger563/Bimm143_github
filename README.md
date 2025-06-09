@@ -1,7 +1,7 @@
 # Bimm143
 My Classwork from [Bimm143 S25](https://bioboot.github.io/bimm143_S25/) at UC San Diego.
 
--04 Intro to R
+-04 Intro to R (https://github.com/clevinger563/Bimm143_github/blob/main/class04/class4-Intro-to-R.md)
 
 -05 Advanced graphics with **ggplot2**
 
