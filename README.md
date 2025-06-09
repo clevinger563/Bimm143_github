@@ -7,6 +7,6 @@ My Classwork from [Bimm143 S25](https://bioboot.github.io/bimm143_S25/) at UC Sa
 
 -06 R functions (https://github.com/clevinger563/Bimm143_github/blob/main/Class06RFunctions.md)
 
--07 Intro to Machine Learning (
+-07 Intro to Machine Learning (https://github.com/clevinger563/Bimm143_github/blob/main/Class07%20Machine%20Learning%201.md)
 
 All four of these classes should have been added to the github web browser. 
